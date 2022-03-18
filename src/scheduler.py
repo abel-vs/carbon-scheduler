@@ -3,7 +3,7 @@ import argparse
 import time
 import os
 import sys
-from subprocess import Popen
+from crontab import CronTab
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -15,7 +15,7 @@ def train_model():
 if __name__ == '__main__':
     
     argumentList = sys.argv[1:]
-
+    
     # Create the parser
     my_parser = argparse.ArgumentParser(description='Schedule Python tasks')
 
@@ -40,20 +40,9 @@ if __name__ == '__main__':
     # Execute the parse_args() method
     args = my_parser.parse_args()
 
-    input_path = args.job
-    print(input_path)
-
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(train_model, 'date')
-    scheduler.start()
-    print('Press Ctrl+{0} to exit'.format('Break' if os.name == 'nt' else 'C'))
-
-    try:
-        # This is here to simulate application activity (which keeps the main thread alive).
-        while True:
-            time.sleep(2)
-            # print("you entered " + input("input smth"))
-    except (KeyboardInterrupt, SystemExit):
-        # Not strictly necessary if daemonic mode is enabled but should be done if possible
-        scheduler.shutdown()
+    cron = CronTab(user='wander')
+    job = cron.new(command=f'python {os.path.abspath(args.job)} >> ~/Desktop/output2.txt 2>&1')
+    
+    job.minute.every(1)
+    cron.write()
 
