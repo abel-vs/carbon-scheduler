@@ -9,12 +9,14 @@ from task import Task
 today = dt.datetime(year=2022, month=3, day=14, hour=19)
 # List of tasks
 tasks = [
-    Task(deadline=dt.datetime(2022, 3, 14, hour=23), duration=dt.timedelta(hours=1)),
-    Task(deadline=dt.datetime(2022, 3, 18, hour=8), duration=dt.timedelta(hours=2)),
-    Task(deadline=dt.datetime(2022, 3, 16, hour=8), duration=dt.timedelta(hours=5)),
-    Task(deadline=dt.datetime(2022, 3, 16, hour=8), duration=dt.timedelta(hours=13)),
-    Task(deadline=dt.datetime(2022, 3, 16, hour=8), duration=dt.timedelta(hours=24)),
-    Task(deadline=dt.datetime(2022, 3, 16, hour=8), duration=dt.timedelta(hours=100)),
+    Task(duration=dt.timedelta(hours=1), start=dt.datetime(2022, 3, 14, hour=8), deadline=dt.datetime(2022, 3, 14, hour=23)),
+    Task(duration=dt.timedelta(hours=2), start=dt.datetime(2022, 3, 14, hour=8), deadline=dt.datetime(2022, 3, 14, hour=23)),
+    Task(duration=dt.timedelta(hours=5), start=dt.datetime(2022, 3, 14, hour=8), deadline=dt.datetime(2022, 3, 14, hour=23)),
+    Task(duration=dt.timedelta(hours=8), start=dt.datetime(2022, 3, 14, hour=8), deadline=dt.datetime(2022, 3, 14, hour=23)),
+    Task(duration=dt.timedelta(hours=13), start=dt.datetime(2022, 3, 14, hour=8), deadline=dt.datetime(2022, 3, 16, hour=23)),
+    Task(duration=dt.timedelta(hours=24), start=dt.datetime(2022, 3, 14, hour=8), deadline=dt.datetime(2022, 3, 16, hour=23)),
+    Task(duration=dt.timedelta(hours=100), start=dt.datetime(2022, 3, 14, hour=8), deadline=dt.datetime(2022, 3, 30, hour=23)),
+    Task(duration=dt.timedelta(hours=1000), start=dt.datetime(2022, 3, 14, hour=8), deadline=dt.datetime(2022, 10, 1, hour=23)),
 ]
 
 # Dummy data
@@ -30,18 +32,75 @@ increase_week_data = [
     [144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167]
 ]
 
+binary_week_data = [
+    [0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+]
+
 
 class TestOfflineModel(unittest.TestCase):
 
     def test_best_24h_start_point_increasing_hours(self):
         model = OfflineModel(data=np.array(increase_hour_data))
         for task in tasks:
-            self.assertEqual(model.best_24h_start_point(task.duration), 0, "Should be 0")
+            self.assertEqual(model.best_24h_start_point(task), 0, "Should be 0")
 
     def test_best_week_start_point_increasing_hours(self):
         model = OfflineModel(data=np.array(increase_week_data))
         for task in tasks:
-            self.assertEqual(model.best_week_start_point(task.duration), 0, "Should be 0")
+            self.assertEqual(model.best_week_start_point(task), 0, "Should be 0")
+
+    def test_no_time(self):
+        """Should raise exception since not enough time to complete the task before the deadline."""
+        with self.assertRaises(Exception):
+            Task(duration=dt.timedelta(hours=1000), start=dt.datetime(2022, 3, 14, hour=8), deadline=dt.datetime(2022, 3, 14, hour=23))
+
+    def test_task_construction(self):
+        """Should raise exception since start date is after deadline."""
+        with self.assertRaises(Exception):
+            Task(duration=dt.timedelta(hours=1), start=dt.datetime(2022, 3, 15, hour=8), deadline=dt.datetime(2022, 3, 14, hour=23))
+
+    def test_best_week_start_point_binary(self):
+        model = OfflineModel(data=np.array(binary_week_data))
+        now = dt.datetime(2022, 3, 1, hour=8)  # 1st of March is a Tuesday
+        # For 1 hour task first best result is 2nd of March 0:00 (from binary week data)
+        with self.subTest("Should be 2nd of March 0:00"):
+            task = Task(duration=dt.timedelta(hours=1), start=now, deadline=dt.datetime(2022, 3, 2, hour=8))
+            self.assertEqual(model.best_week_start_point(task), dt.datetime(2022, 3, 2, hour=0))
+        # For 2 hour task first best result is 2nd of March 7:00
+        with self.subTest("Should be 2nd of March 7:00"):
+            task = Task(duration=dt.timedelta(hours=2), start=now, deadline=dt.datetime(2022, 3, 2, hour=8))
+            self.assertEqual(model.best_week_start_point(task), dt.datetime(2022, 3, 2, hour=7))
+        # For 3 hour task the best result is Monday, 7th of March 7:00
+        with self.subTest("Should be 7th of March 7:00"):
+            task = Task(duration=dt.timedelta(hours=3), start=now, deadline=dt.datetime(2022, 3, 10, hour=8))
+            self.assertEqual(model.best_week_start_point(task), dt.datetime(2022, 3, 7, hour=7))
+        # For tasks taking 4, 5, 6, 7, 8 hours, Wednesday 3th of March 7:00 is the best start point.
+        with self.subTest("4h task should be 2nd of March 7:00"):
+            task = Task(duration=dt.timedelta(hours=4), start=now, deadline=dt.datetime(2022, 3, 10, hour=8))
+            self.assertEqual(model.best_week_start_point(task), dt.datetime(2022, 3, 2, hour=7))
+        with self.subTest("5h task should be 2nd of March 7:00"):
+            task = Task(duration=dt.timedelta(hours=5), start=now, deadline=dt.datetime(2022, 3, 10, hour=8))
+            self.assertEqual(model.best_week_start_point(task), dt.datetime(2022, 3, 2, hour=7))
+        with self.subTest("6h task should be 2nd of March 6:00"):
+            task = Task(duration=dt.timedelta(hours=6), start=now, deadline=dt.datetime(2022, 3, 10, hour=8))
+            self.assertEqual(model.best_week_start_point(task), dt.datetime(2022, 3, 2, hour=6))
+        with self.subTest("7h task should be 2nd of March 7:00"):
+            task = Task(duration=dt.timedelta(hours=7), start=now, deadline=dt.datetime(2022, 3, 10, hour=8))
+            self.assertEqual(model.best_week_start_point(task), dt.datetime(2022, 3, 2, hour=7))
+        with self.subTest("8h task should be 2nd of March 7:00"):
+            task = Task(duration=dt.timedelta(hours=8), start=now, deadline=dt.datetime(2022, 3, 10, hour=8))
+            self.assertEqual(model.best_week_start_point(task), dt.datetime(2022, 3, 2, hour=7))
+
+        # Check whether it handles deadlines
+        with self.subTest("3h task has to be handled before the optimal time"):
+            task = Task(duration=dt.timedelta(hours=3), start=now, deadline=dt.datetime(2022, 3, 2, hour=5))
+            self.assertEqual(model.best_week_start_point(task), dt.datetime(2022, 3, 1, hour=22))
 
 
 if __name__ == '__main__':

@@ -13,13 +13,6 @@ class OfflineModel:
         :param start: Only for testing purpose, if no specific date is given it uses the current time of execution.
         """
         self.data = data if data is not None else get_hour_data()
-        self.start = start or dt.datetime.now()
-
-    def get_current_carbon(self):
-        """
-        Get the carbon intensity of the current hour.
-        """
-        return self.data[self.start.hour]
 
     def get_lowest_carbon(self):
         """
@@ -28,7 +21,7 @@ class OfflineModel:
         """
         return np.argmin(self.data)
 
-    def best_24h_start_point(self, duration):
+    def best_24h_start_point(self, task):
         """
         Find best start point in the coming 24 hours.
         :return: Best start hour in the coming 24 hours.
@@ -37,9 +30,9 @@ class OfflineModel:
         day_cost = sum(self.data)
         for i in range(24):
             # Add hour costs for whole days, only for tasks longer than 24h.
-            cost = day_cost * duration.days
+            cost = day_cost * task.duration.days
             # Add hour costs for shorter periods
-            hrs = duration.seconds // 3600
+            hrs = task.duration.seconds // 3600
             if i + hrs <= 24:
                 cost += sum(self.data[i:i + hrs])
             else:
@@ -52,24 +45,45 @@ class OfflineModel:
         print("Lowest carbon cost:", min_cost, " When started at hour:", min_start_point)
         return min_start_point
 
-    def best_week_start_point(self, duration: dt.timedelta):
+    def best_week_start_point(self, task):
         """
         Find best start point in the coming 7 days.
         :return: Best start hour in the 7 days, .
         """
-        costs = []
+
+        # Structure data array to start from start hour index
+        start_index = task.start.hour + task.start.weekday() * 24
         data = self.data.flatten()
-        hours = duration.seconds // 3600
-        for i in range(len(data)):
+        data = np.concatenate([data[start_index:], data[:start_index]])
+
+        # Calculate size of search space
+        time_left = task.deadline - task.start
+        hours_left = time_left.total_seconds() // 3600
+        # If we have more than a week left to schedule the task,
+        # we find the best place in the coming week, since all weeks are the same.
+        search_space = int(min(hours_left, len(data)))
+
+        costs = []
+        duration_in_hours = task.duration.seconds // 3600
+        duration_in_weeks = task.duration.days // 7
+        week_cost = sum(data)
+
+        for i in range(search_space):
+            # Sum the carbon from start point i until completion of the task
             data_from_i = np.concatenate([data[i:], data[:i]])
-            cost = sum(data_from_i[:hours])
+            cost = sum(data_from_i[:duration_in_hours])
             # If duration is longer than a whole week
-            cost += sum(data) * duration.days // 7
+            cost += week_cost * duration_in_weeks
             costs.append(cost)
+
+        # Extract optimal start time
         min_cost = np.amin(costs)
-        min_start_point = np.argmin(costs)
-        print("Lowest carbon cost:", min_cost, " When started at hour:", min_start_point)
-        return min_start_point
+        min_cost_hour = int(np.argmin(costs))
+        # Add the number of hours for the best start time to the start date.
+        best_start = task.start + dt.timedelta(hours=min_cost_hour)
+        print("Lowest carbon cost:", min_cost, " When started at:", best_start)
+
+        return best_start
 
     def process_all_consecutive(self, tasks):
         """
