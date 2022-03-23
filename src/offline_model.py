@@ -1,25 +1,15 @@
 import datetime as dt
 import numpy as np
-import pandas as pd
 
-from data import get_hour_data
+from data import get_hour_data, get_week_data
 
 
 class OfflineModel:
 
-    def __init__(self, data=None, start=None):
-        """
-        :param data: To specify the offline data model.
-        :param start: Only for testing purpose, if no specific date is given it uses the current time of execution.
-        """
-        self.data = data if data is not None else get_hour_data()
-
-    def get_lowest_carbon(self):
-        """
-        For tasks taking less than an hour.
-        :return: Hour with lowest carbon intensity.
-        """
-        return np.argmin(self.data)
+    def __init__(self, country, hour_data=None, week_data=None):
+        self.country = country
+        self.hour_data = hour_data if hour_data is not None else get_hour_data()
+        self.week_data = week_data if week_data is not None else get_week_data()
 
     def best_24h_start_point(self, task):
         """
@@ -27,18 +17,18 @@ class OfflineModel:
         :return: Best start hour in the coming 24 hours.
         """
         costs = []
-        day_cost = sum(self.data)
+        day_cost = sum(self.hour_data)
         for i in range(24):
             # Add hour costs for whole days, only for tasks longer than 24h.
             cost = day_cost * task.duration.days
             # Add hour costs for shorter periods
             hrs = task.duration.seconds // 3600
             if i + hrs <= 24:
-                cost += sum(self.data[i:i + hrs])
+                cost += sum(self.hour_data[i:i + hrs])
             else:
                 hrs_left = (i + hrs) % 24
-                cost += sum(self.data[i:i + (hrs - hrs_left)])
-                cost += sum(self.data[:hrs_left])
+                cost += sum(self.hour_data[i:i + (hrs - hrs_left)])
+                cost += sum(self.hour_data[:hrs_left])
             costs.append(cost)
         min_cost = np.amin(costs)
         min_start_point = np.argmin(costs)
@@ -53,7 +43,7 @@ class OfflineModel:
 
         # Structure data array to start from start hour index
         start_index = task.start.hour + task.start.weekday() * 24
-        data = self.data.flatten()
+        data = self.week_data.flatten()
         data = np.concatenate([data[start_index:], data[:start_index]])
 
         # Calculate size of search space
@@ -116,9 +106,9 @@ class OfflineModel:
         """
         starting_points = []
         for task in tasks:
-            starting_points.append(self.get_lowest_carbon(task))
+            starting_points.append(self.best_week_start_point(task))
         return starting_points
 
 
 if __name__ == '__main__':
-    offline_model = OfflineModel()
+    offline_model = OfflineModel("NL")

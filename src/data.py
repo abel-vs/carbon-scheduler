@@ -22,5 +22,5 @@ def get_hour_data(country="NL"):
     return np.array(hour_data[country])
 
 
-def get_week_data():
+def get_week_data(country="NL"):
     return np.array(week_data)

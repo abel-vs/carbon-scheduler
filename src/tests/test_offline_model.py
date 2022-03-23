@@ -42,16 +42,18 @@ binary_week_data = [
     [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 ]
 
+country = "NL"
+
 
 class TestOfflineModel(unittest.TestCase):
 
     def test_best_24h_start_point_increasing_hours(self):
-        model = OfflineModel(data=np.array(increase_hour_data))
+        model = OfflineModel(country, hour_data=np.array(increase_hour_data))
         for task in tasks:
             self.assertEqual(model.best_24h_start_point(task), 0, "Should be 0")
 
     def test_best_week_start_point_increasing_hours(self):
-        model = OfflineModel(data=np.array(increase_week_data))
+        model = OfflineModel(country, week_data=np.array(increase_week_data))
         for task in tasks:
             self.assertEqual(model.best_week_start_point(task), 0, "Should be 0")
 
@@ -66,7 +68,7 @@ class TestOfflineModel(unittest.TestCase):
             Task(duration=dt.timedelta(hours=1), start=dt.datetime(2022, 3, 15, hour=8), deadline=dt.datetime(2022, 3, 14, hour=23))
 
     def test_best_week_start_point_binary(self):
-        model = OfflineModel(data=np.array(binary_week_data))
+        model = OfflineModel(country, week_data=np.array(binary_week_data))
         now = dt.datetime(2022, 3, 1, hour=8)  # 1st of March is a Tuesday
         # For 1 hour task first best result is 2nd of March 0:00 (from binary week data)
         with self.subTest("Should be 2nd of March 0:00"):
