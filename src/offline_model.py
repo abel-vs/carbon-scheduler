@@ -4,20 +4,22 @@ import pandas as pd
 
 from data import get_hour_data
 
+
 class OfflineModel:
 
-    def __init__(self, data=None):
-        if data is None:
-            self.data = get_hour_data()
-        else:
-            self.data = data
+    def __init__(self, data=None, start=None):
+        """
+        :param data: To specify the offline data model.
+        :param start: Only for testing purpose, if no specific date is given it uses the current time of execution.
+        """
+        self.data = data if data is not None else get_hour_data()
+        self.start = start or dt.datetime.now()
 
     def get_current_carbon(self):
         """
         Get the carbon intensity of the current hour.
         """
-        now = dt.datetime.now()
-        return self.data[now.hour]
+        return self.data[self.start.hour]
 
     def get_lowest_carbon(self):
         """
@@ -26,24 +28,23 @@ class OfflineModel:
         """
         return np.argmin(self.data)
 
-    def best_start_point(self, duration: dt.timedelta):
+    def best_24h_start_point(self, duration):
         """
         Find best start point in the coming 24 hours.
         :return: Best start hour in the coming 24 hours.
         """
         costs = []
         day_cost = sum(self.data)
-        # current_hour = dt.datetime.now().hour
         for i in range(24):
             # Add hour costs for whole days, only for tasks longer than 24h.
             cost = day_cost * duration.days
             # Add hour costs for shorter periods
-            hrs = duration.seconds//3600
+            hrs = duration.seconds // 3600
             if i + hrs <= 24:
                 cost += sum(self.data[i:i + hrs])
             else:
                 hrs_left = (i + hrs) % 24
-                cost += sum(self.data[i:i+(hrs-hrs_left)])
+                cost += sum(self.data[i:i + (hrs - hrs_left)])
                 cost += sum(self.data[:hrs_left])
             costs.append(cost)
         min_cost = np.amin(costs)
@@ -51,18 +52,24 @@ class OfflineModel:
         print("Lowest carbon cost:", min_cost, " When started at hour:", min_start_point)
         return min_start_point
 
-    @staticmethod
-    def hours_until_deadline(deadline):
+    def best_week_start_point(self, duration: dt.timedelta):
         """
-        Get the number of hours until the deadline.
-        :param deadline: in datetime format
-        :return: Number of hours until the deadline.
+        Find best start point in the coming 7 days.
+        :return: Best start hour in the 7 days, .
         """
-        now = dt.datetime.now()
-        time = deadline - now
-        time_in_s = time.total_seconds()
-        hours = divmod(time_in_s, 3600)[0]
-        return int(hours)
+        costs = []
+        data = self.data.flatten()
+        hours = duration.seconds // 3600
+        for i in range(len(data)):
+            data_from_i = np.concatenate([data[i:], data[:i]])
+            cost = sum(data_from_i[:hours])
+            # If duration is longer than a whole week
+            cost += sum(data) * duration.days // 7
+            costs.append(cost)
+        min_cost = np.amin(costs)
+        min_start_point = np.argmin(costs)
+        print("Lowest carbon cost:", min_cost, " When started at hour:", min_start_point)
+        return min_start_point
 
     def process_all_consecutive(self, tasks):
         """
