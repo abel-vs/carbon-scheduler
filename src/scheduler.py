@@ -66,7 +66,13 @@ def parse_args():
                          action='store_true',
                          help="list all scheduled jobs")
 
-    # TODO add argument for cancelling a job given id
+    parser.add_argument('--cancel_repeating', '-cr',
+                        type=int,
+                        help="Cancel repeating job given the id")
+
+    parser.add_argument('--cancel_one', '-co',
+                        type=int,
+                        help="Cancel one-off job given the id")
 
     args = parser.parse_args()
 
@@ -111,7 +117,15 @@ if __name__ == '__main__':
         #     print(f'| Id: {idx:3}|  At: {job[1]}| Queue: {job[6]:10} | User: {job[7]}|')
         # print("Id "job number, date, hour, year, queue, and username)
         print(result)
-
+    elif args.cancel_repeating is not None:
+        for (idx, job) in enumerate(cron):
+            if idx == args.cancel_repeating:
+                cron.remove(job)
+                cron.write()
+                print(f'Cancelled job with id: {idx:2} and command: {str(job):10}')
+    elif args.cancel_one is not None:
+        print()
+        # TODO Cancel at job
     else:
         duration = datetime.timedelta(seconds=3600) # in seconds
         if args.span is not None:
