@@ -76,7 +76,7 @@ if __name__ == '__main__':
     output_file = '~/Desktop/output.txt'
     if args.output is not None:
         output_file = args.output
-    output_file = output_file + ' 2>&1'
+    output_file = output_file + ' 2>&1' # send both stdout and stderr to our output file
 
     duration = datetime.timedelta(seconds=3600) # in seconds
     if args.span is not None:
