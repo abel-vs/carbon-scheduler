@@ -5,6 +5,7 @@ import os
 import sys
 from crontab import CronTab, CronItem
 import task
+import croniter
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -101,7 +102,8 @@ if __name__ == '__main__':
                                     f'{output_file}'), cron=cron)
         cron.append(item)
         cron.write()
-        print(f'scheduled repeating job with schedule {args.repeat}')
+        next_run = croniter.croniter(args.repeat, datetime.datetime.now()).get_next(datetime.datetime)
+        print(f'scheduled repeating job with schedule {args.repeat} - next run at {next_run}')
     elif args.at is not None:
         # we have a one-off job, schedule using `at`
         format = '%Y%m%d%H%M' # at's format:[[CC]YY]MMDDhhmm
