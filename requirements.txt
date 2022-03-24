@@ -1,7 +1,5 @@
-<<<<<<< HEAD
 numpy~=1.22.3
 pandas~=1.4.1
 requests~=2.27.1
-=======
-apscheduler
->>>>>>> scheduling
+python-crontab
+croniter
