@@ -70,8 +70,6 @@ if __name__ == '__main__':
     args = parse_args()
 
     cron = CronTab(user='wander')
-    for job in cron:
-        print(job)
 
     output_file = '~/Desktop/output.txt'
     if args.output is not None:
@@ -94,8 +92,6 @@ if __name__ == '__main__':
     task = task.Task(duration, deadline, delay)
     new_start = model.process_concurrently([task])[0]
 
-    print(new_start)
-
     if args.repeat is not None:
         # we have a repeating job, schedule using `cron`
 
@@ -105,7 +101,7 @@ if __name__ == '__main__':
                                     f'{output_file}'), cron=cron)
         cron.append(item)
         cron.write()
-        print('scheduled repeating job')
+        print(f'scheduled repeating job with schedule {args.repeat}')
     elif args.at is not None:
         # we have a one-off job, schedule using `at`
         format = '%Y%m%d%H%M' # at's format:[[CC]YY]MMDDhhmm
@@ -113,16 +109,18 @@ if __name__ == '__main__':
             time_str = new_start.strftime(format) 
         else:
             time_str = delay.strftime(format)
-        print(time_str)
         at_options = ""
         at_time = args.at
         if args.t is True:
             at_time = time_str
             at_options = '-t'
         cmd = (f'python {os.path.abspath(args.job)} >> {output_file} '
-                f'| at {at_options} {at_time} >> /dev/null') #2>&1')
-        print(cmd)
+                f'| at {at_options} {at_time} >> /dev/null 2>&1')
         subprocess.run(cmd, shell=True) # TODO: remove shell=True
-        print('scheduled one-off job')
+
+        time_string = args.at
+        if args.t is True:
+            time_string = new_start.strftime("%Y-%m-%d %H:%M:%S")
+        print(f'scheduled one-off job for {time_string}')
     else:
         print('error: one of the following arguments is required: repeat, at')

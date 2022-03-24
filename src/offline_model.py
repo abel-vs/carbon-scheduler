@@ -32,7 +32,7 @@ class OfflineModel:
             costs.append(cost)
         min_cost = np.amin(costs)
         min_start_point = np.argmin(costs)
-        print("Lowest carbon cost:", min_cost, " When started at hour:", min_start_point)
+        #print("Lowest carbon cost:", min_cost, " When started at hour:", min_start_point)
         return min_start_point
 
     def best_week_start_point(self, task):
@@ -71,7 +71,7 @@ class OfflineModel:
         min_cost_hour = int(np.argmin(costs))
         # Add the number of hours for the best start time to the start date.
         best_start = task.start + dt.timedelta(hours=min_cost_hour)
-        print("Lowest carbon cost:", min_cost, " When started at:", best_start)
+        #print("Lowest carbon cost:", min_cost, " When started at:", best_start)
 
         return best_start
 
