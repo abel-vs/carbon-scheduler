@@ -15,50 +15,60 @@ if __name__ == '__main__':
     argumentList = sys.argv[1:]
     
     # Create the parser
-    my_parser = argparse.ArgumentParser(description='Schedule Python tasks')
+    parser = argparse.ArgumentParser(description='Schedule Python tasks')
 
     # Add the arguments
-    my_parser.add_argument('job',
+    parser.add_argument('job',
                        metavar='job',
                        type=str,
                        help='the Python filename of the job to schedule')
 
-    my_parser.add_argument('--repeat',
+    parser.add_argument('--repeat',
                        metavar='repeat',
                        type=str,
                        help='a cron expression or a natural language expression describing the \
                        repetition schedule of the job')
 
-    my_parser.add_argument('--at',
+    parser.add_argument('--at',
                        metavar='at',
                        type=str,
                        help='a natural language string describing when to schedule the task')
 
-    my_parser.add_argument('--span', '--duration',
+    parser.add_argument('-t', 
+                        action='store_true', # so default = False
+                        help='pass this flag if you set --at and you want to specify time \
+                             absolutely instead of relatively') 
+
+    parser.add_argument('--span', '--duration',
                        metavar='span',
                        type=str,
                        help='the estimated span, or duration, of the job, in seconds',
                        required=False)
 
-    my_parser.add_argument('--not-before',
+    parser.add_argument('--not-before',
                        metavar='not_before',
                        type=str,
                        help='minimum number of seconds that have to pass before starting task',
                        required=False)
     
-    my_parser.add_argument('--deadline',
+    parser.add_argument('--deadline',
                        metavar='deadline',
                        type=str,
                        help='the estimated deadline of the job, in seconds from now',
                        required=False)
 
-    my_parser.add_argument('--output', 'o',
+    parser.add_argument('--output', '--o',
                        metavar='output',
                        type=str,
                        help='the path to the output file',
                        required=False)
 
-    args = my_parser.parse_args()
+    parser.add_argument('-g', '-green', '-mybasementisfullofbatteries', '-mbifob', 
+                        action='store_true', # so default = False
+                        help='pass this flag if your computing infrastructure is fully \
+                        carbon-neutral') 
+
+    args = parser.parse_args()
 
     cron = CronTab(user='wander')
     for job in cron:
@@ -67,9 +77,9 @@ if __name__ == '__main__':
     output_file = '~/Desktop/output.txt'
     if args.output is not None:
         output_file = args.output
-    output_file.append(' 2>&1')
+    output_file = output_file + ' 2>&1'
 
-    duration = datetime.timedelta(seconds=10) # in seconds
+    duration = datetime.timedelta(seconds=3600) # in seconds
     if args.span is not None:
         duration = datetime.timedelta(seconds=args.span)
     
@@ -100,10 +110,10 @@ if __name__ == '__main__':
     elif args.at is not None:
         # we have a one-off job, schedule using `at`
         time_str = new_start.strftime('%Y%m%d%H%M') # [[CC]YY]MMDDhhmm
-
+        print(time_str)
         print('new start: ' + str(new_start))
         cmd = f'python {os.path.abspath(args.job)} >> {output_file}\
-             | at {args.at} >> /dev/null 2>&1'
+             | at -t {time_str} >> /dev/null 2>&1'
         subprocess.run(cmd, shell=True) # TODO: remove shell=True
         print('scheduled one-off job')
     else:
