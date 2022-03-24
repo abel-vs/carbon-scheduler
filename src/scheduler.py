@@ -10,11 +10,9 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 from offline_model import OfflineModel
 
-if __name__ == '__main__':
-    
-    argumentList = sys.argv[1:]
-    
-    # Create the parser
+def parse_args():
+     # Create the parser
+
     parser = argparse.ArgumentParser(description='Schedule Python tasks')
 
     # Add the arguments
@@ -69,6 +67,12 @@ if __name__ == '__main__':
                         carbon-neutral') 
 
     args = parser.parse_args()
+
+    return args
+
+if __name__ == '__main__':
+        
+    args = parse_args()
 
     cron = CronTab(user='wander')
     for job in cron:
