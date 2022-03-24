@@ -99,9 +99,7 @@ if __name__ == '__main__':
             now = datetime.now()
             next_run = croniter(str(job.slices.render()), now).get_next(datetime)
             print(f' Id: {idx:2}| Next run: {next_run} | Job: {str(job):10}')
-
         print()
-
         cmd = 'atq'
         result = check_output(cmd, universal_newlines=True)
         print("One-off jobs:")
@@ -120,37 +118,6 @@ if __name__ == '__main__':
         cmd = f'atq -r {args.cancel_one}'
         result = check_output(cmd, universal_newlines=True)
         print(f'Cancelled one-off job with id: {args.cancel_one:2}')
-    elif args.repeat is not None:
-        # we have a repeating job, schedule using `cron`
-
-        # extra parentheses around the strings to get a multiline string without whitespace
-        # see: https://stackoverflow.com/a/10660443
-        item = CronItem.from_line((f'{args.repeat} python {os.path.abspath(args.job)} >> '
-                                    f'{output_file}'), cron=cron)
-        cron.append(item)
-        cron.write()
-        next_run = croniter.croniter(args.repeat, datetime.datetime.now()).get_next(datetime.datetime)
-        print(f'scheduled repeating job with schedule {args.repeat} - next run at {next_run}')
-    elif args.at is not None:
-        # we have a one-off job, schedule using `at`
-        format = '%Y%m%d%H%M' # at's format:[[CC]YY]MMDDhhmm
-        if args.green is False:
-            time_str = new_start.strftime(format) 
-        else:
-            time_str = delay.strftime(format)
-        at_options = ""
-        at_time = args.at
-        if args.t is True:
-            at_time = time_str
-            at_options = '-t'
-        cmd = (f'python {os.path.abspath(args.job)} >> {output_file} '
-                f'| at {at_options} {at_time} >> /dev/null 2>&1')
-        subprocess.run(cmd, shell=True) # TODO: remove shell=True
-
-        time_string = args.at
-        if args.t is True:
-            time_string = new_start.strftime("%Y-%m-%d %H:%M:%S")
-        print(f'scheduled one-off job for {time_string}')
     else:
         duration = datetime.timedelta(seconds=3600) # in seconds
         if args.span is not None:
@@ -176,28 +143,30 @@ if __name__ == '__main__':
             # extra parentheses around the strings to get a multiline string without whitespace
             # see: https://stackoverflow.com/a/10660443
             item = CronItem.from_line((f'{args.repeat} python {os.path.abspath(args.job)} >> '
-                                        f'{output_file}'), cron=cron)
+                                       f'{output_file}'), cron=cron)
             cron.append(item)
             cron.write()
-
-            print('scheduled repeating job')
+            next_run = croniter.croniter(args.repeat, datetime.datetime.now()).get_next(datetime.datetime)
+            print(f'scheduled repeating job with schedule {args.repeat} - next run at {next_run}')
         elif args.at is not None:
             # we have a one-off job, schedule using `at`
-            format = '%Y%m%d%H%M' # at's format:[[CC]YY]MMDDhhmm
+            format = '%Y%m%d%H%M'  # at's format:[[CC]YY]MMDDhhmm
             if args.green is False:
                 time_str = new_start.strftime(format)
             else:
                 time_str = delay.strftime(format)
-            print("Time string formatted", time_str)
             at_options = ""
             at_time = args.at
             if args.t is True:
                 at_time = time_str
                 at_options = '-t'
             cmd = (f'python {os.path.abspath(args.job)} >> {output_file} '
-                    f'| at {at_options} {at_time} >> /dev/null') #2>&1')
-            print(cmd)
-            subprocess.run(cmd, shell=True) # TODO: remove shell=True
-            print('scheduled one-off job')
+                   f'| at {at_options} {at_time} >> /dev/null 2>&1')
+            subprocess.run(cmd, shell=True)  # TODO: remove shell=True
+
+            time_string = args.at
+            if args.t is True:
+                time_string = new_start.strftime("%Y-%m-%d %H:%M:%S")
+            print(f'Scheduled one-off job for {time_string}')
         else:
             print('error: one of the following arguments is required: repeat, at')
