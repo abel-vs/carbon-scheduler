@@ -90,11 +90,6 @@ if __name__ == '__main__':
 
     output_file = output_file + ' 2>&1' # send both stdout and stderr to our output file
 
-    isExist = os.path.exists(output_file)
-    if not isExist:
-        # Create a new directory because it does not exist
-        os.makedirs(output_file)
-
     if args.list:
         print("All scheduled jobs:")
         print()
@@ -108,25 +103,52 @@ if __name__ == '__main__':
 
         cmd = 'atq'
         result = check_output(cmd, universal_newlines=True)
-
         print("One-off jobs:")
-        # results = result.strip("\n")
-        # for (idx, job) in enumerate(results):
-        #     job_info = job.strip(' ')
-        #     print(job_info)
-        #     print(f'| Id: {idx:3}|  At: {job[1]}| Queue: {job[6]:10} | User: {job[7]}|')
-        # print("Id "job number, date, hour, year, queue, and username)
         print(result)
     elif args.cancel_repeating is not None:
+        job_removed = None
         for (idx, job) in enumerate(cron):
             if idx == args.cancel_repeating:
-                cron.remove(job)
-                cron.write()
-                print(f'Cancelled repeating job with id: {idx:2} and command: {str(job):10}')
+                job_removed = job
+
+        if job_removed is not None:
+            cron.remove(job_removed)
+            cron.write()
+            print(f'Cancelled repeating job with id: {args.cancel_repeating:2} and command: {str(job_removed):10}')
     elif args.cancel_one is not None:
         cmd = f'atq -r {args.cancel_one}'
         result = check_output(cmd, universal_newlines=True)
         print(f'Cancelled one-off job with id: {args.cancel_one:2}')
+    elif args.repeat is not None:
+        # we have a repeating job, schedule using `cron`
+
+        # extra parentheses around the strings to get a multiline string without whitespace
+        # see: https://stackoverflow.com/a/10660443
+        item = CronItem.from_line((f'{args.repeat} python {os.path.abspath(args.job)} >> '
+                                    f'{output_file}'), cron=cron)
+        cron.append(item)
+        # cron.write()
+        print(f'scheduled repeating job with schedule {args.repeat}')
+    elif args.at is not None:
+        # we have a one-off job, schedule using `at`
+        format = '%Y%m%d%H%M' # at's format:[[CC]YY]MMDDhhmm
+        if args.green is False:
+            time_str = new_start.strftime(format) 
+        else:
+            time_str = delay.strftime(format)
+        at_options = ""
+        at_time = args.at
+        if args.t is True:
+            at_time = time_str
+            at_options = '-t'
+        cmd = (f'python {os.path.abspath(args.job)} >> {output_file} '
+                f'| at {at_options} {at_time} >> /dev/null 2>&1')
+        subprocess.run(cmd, shell=True) # TODO: remove shell=True
+
+        time_string = args.at
+        if args.t is True:
+            time_string = new_start.strftime("%Y-%m-%d %H:%M:%S")
+        print(f'scheduled one-off job for {time_string}')
     else:
         duration = datetime.timedelta(seconds=3600) # in seconds
         if args.span is not None:
