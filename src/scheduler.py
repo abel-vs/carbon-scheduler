@@ -56,7 +56,7 @@ def parse_args():
                        help='the path to the output file',
                        required=False)
 
-    parser.add_argument('-g', '-green', '-mybasementisfullofbatteries', '-mbifob', 
+    parser.add_argument('-green', '-g', '-mybasementisfullofbatteries', '-mbifob', 
                         action='store_true', # so default = False
                         help='pass this flag if your computing infrastructure is fully \
                         carbon-neutral') 
@@ -86,12 +86,12 @@ if __name__ == '__main__':
     if args.deadline is not None:
         deadline = datetime.datetime.now() + datetime.timedelta(seconds=args.deadline)
 
-    start = None
+    delay = datetime.datetime.now()
     if args.delay is not None:
-        start = datetime.datetime.now() + datetime.timedelta(seconds=args.delay)
+        delay = datetime.datetime.now() + datetime.timedelta(seconds=args.delay)
 
     model = OfflineModel('NL')
-    task = task.Task(duration, deadline, start)
+    task = task.Task(duration, deadline, delay)
     new_start = model.process_concurrently([task])[0]
 
     print(new_start)
@@ -108,14 +108,20 @@ if __name__ == '__main__':
         print('scheduled repeating job')
     elif args.at is not None:
         # we have a one-off job, schedule using `at`
-        time_str = new_start.strftime('%Y%m%d%H%M') # at's format:[[CC]YY]MMDDhhmm
+        format = '%Y%m%d%H%M' # at's format:[[CC]YY]MMDDhhmm
+        if args.green is False:
+            time_str = new_start.strftime(format) 
+        else:
+            time_str = delay.strftime(format)
+        print(time_str)
         at_options = ""
-        at_time = time_str
+        at_time = args.at
         if args.t is True:
+            at_time = time_str
             at_options = '-t'
-            at_time = args.at
         cmd = (f'python {os.path.abspath(args.job)} >> {output_file} '
                 f'| at {at_options} {at_time} >> /dev/null') #2>&1')
+        print(cmd)
         subprocess.run(cmd, shell=True) # TODO: remove shell=True
         print('scheduled one-off job')
     else:
