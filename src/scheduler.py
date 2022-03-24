@@ -31,7 +31,7 @@ def parse_args():
                        type=str,
                        help='a string describing when to schedule the task')
 
-    parser.add_argument('-t',  # TODO: implement this
+    parser.add_argument('-t',
                         action='store_true', # so default = False
                         help='pass this flag if you set --at and you want to specify time \
                              absolutely instead of relatively') 
