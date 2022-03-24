@@ -122,10 +122,11 @@ if __name__ == '__main__':
             if idx == args.cancel_repeating:
                 cron.remove(job)
                 cron.write()
-                print(f'Cancelled job with id: {idx:2} and command: {str(job):10}')
+                print(f'Cancelled repeating job with id: {idx:2} and command: {str(job):10}')
     elif args.cancel_one is not None:
-        print()
-        # TODO Cancel at job
+        cmd = f'atq -r {args.cancel_one}'
+        result = check_output(cmd, universal_newlines=True)
+        print(f'Cancelled one-off job with id: {args.cancel_one:2}')
     else:
         duration = datetime.timedelta(seconds=3600) # in seconds
         if args.span is not None:
