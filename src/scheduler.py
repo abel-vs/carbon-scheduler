@@ -1,10 +1,10 @@
-from subprocess import check_output
+import subprocess
 import argparse
 import os
 import sys
 from crontab import CronTab, CronItem
 from croniter import croniter
-from datetime import datetime
+import datetime
 import task
 import croniter
 
@@ -96,12 +96,13 @@ if __name__ == '__main__':
         print()
         print("Repeating jobs:")
         for (idx, job) in enumerate(cron):
-            now = datetime.now()
-            next_run = croniter(str(job.slices.render()), now).get_next(datetime)
+            now = datetime.datetime.now()
+            cron = croniter(str(job.slices.render()), now)
+            next_run = cron.get_next(datetime.datetime)
             print(f' Id: {idx:2}| Next run: {next_run} | Job: {str(job):10}')
         print()
         cmd = 'atq'
-        result = check_output(cmd, universal_newlines=True)
+        result = subprocess.check_output(cmd, universal_newlines=True)
         print("One-off jobs:")
         print(result)
     elif args.cancel_repeating is not None:
@@ -116,7 +117,7 @@ if __name__ == '__main__':
             print(f'Cancelled repeating job with id: {args.cancel_repeating:2} and command: {str(job_removed):10}')
     elif args.cancel_one is not None:
         cmd = f'atq -r {args.cancel_one}'
-        result = check_output(cmd, universal_newlines=True)
+        result = subprocess.check_output(cmd, universal_newlines=True)
         print(f'Cancelled one-off job with id: {args.cancel_one:2}')
     else:
         duration = datetime.timedelta(seconds=3600) # in seconds
