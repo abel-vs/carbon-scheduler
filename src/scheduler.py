@@ -6,7 +6,6 @@ from crontab import CronTab, CronItem
 from croniter import croniter
 import datetime
 import task
-import croniter
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
