@@ -32,7 +32,7 @@ class OfflineModel:
             costs.append(cost)
         min_cost = np.amin(costs)
         min_start_point = np.argmin(costs)
-        print("Lowest carbon cost:", min_cost, " When started at hour:", min_start_point)
+        #print("Lowest carbon cost:", min_cost, " When started at hour:", min_start_point)
         return min_start_point
 
     def best_week_start_point(self, task):
