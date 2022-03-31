@@ -75,7 +75,7 @@ class OfflineModel:
         reduction = (1.0 - (min_cost / min_cost_hour)) * 100
 
         stats = {'reduction': reduction, 'original_cost': original_cost, 
-                 'original_start': {task.start}, 'optimized_cost': min_cost, 
+                 'original_start': task.start, 'optimized_cost': min_cost, 
                  'optimized_start': best_start}
 
 
