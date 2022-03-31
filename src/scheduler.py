@@ -41,11 +41,6 @@ def parse_args():
                        type=str,
                        help='the estimated span, or duration, of the job, in seconds',
                        required=False)
-
-    parser.add_argument('--delay',
-                       type=str,
-                       help='minimum number of seconds that have to pass before starting task',
-                       required=False)
     
     parser.add_argument('--deadline',
                        type=str,
@@ -83,14 +78,10 @@ if __name__ == '__main__':
     
     deadline = datetime.datetime.now() + datetime.timedelta(days=7)
     if args.deadline is not None:
-        deadline = datetime.datetime.now() + datetime.timedelta(seconds=args.deadline)
-
-    delay = datetime.datetime.now()
-    if args.delay is not None:
-        delay = datetime.datetime.now() + datetime.timedelta(seconds=args.delay)
+        deadline = datetime.datetime.now() + datetime.timedelta(seconds=int(args.deadline))
 
     model = OfflineModel('NL')
-    task = task.Task(duration, deadline, delay)
+    task = task.Task(duration, deadline, datetime.datetime.now())
     new_start = model.process_concurrently([task])[0]
 
     if args.repeat is not None:
