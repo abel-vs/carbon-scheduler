@@ -1,20 +1,23 @@
+import pickle
 import subprocess
 import datetime
 import argparse
 import os
-import sys
 from crontab import CronTab, CronItem
 import task
 import croniter
+import time
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from offline_model import OfflineModel
 
+program_name = 'Carbon Scheduler'
+
 def parse_args():
      # Create the parser
 
-    parser = argparse.ArgumentParser(description='Carbon Scheduler v0.1')
+    parser = argparse.ArgumentParser(description=f'{program_name} v0.1')
 
     # Add the arguments
     parser.add_argument('job',
@@ -82,7 +85,7 @@ if __name__ == '__main__':
 
     model = OfflineModel('NL')
     task = task.Task(duration, deadline, datetime.datetime.now())
-    new_start = model.process_concurrently([task])[0]
+    new_start, stats = model.process_concurrently([task])[0]
 
     if args.repeat is not None:
         # we have a repeating job, schedule using `cron`
@@ -114,6 +117,21 @@ if __name__ == '__main__':
         time_string = args.at
         if args.t is True:
             time_string = new_start.strftime("%Y-%m-%d %H:%M:%S")
-        print(f'scheduled one-off job for {time_string}')
+        print(f'Optimizing schedule to lower carbon emissions...')
+        time.sleep(3)
+        print(f'Scheduled one-off job for {time_string}')
+
+        original_start = stats['original_start']
+        new_start = stats['optimized_start']
+        reduction = stats['reduction']
+        saved_carbon = stats['original_cost'] - stats['optimized_cost']
+
+        with open('carbon_stats.pickle', 'rb') as handle:
+            stats = pickle.load(handle)
+            total_carbon = stats['total_carbon']
+            with open('carbon_stats.pickle', 'wb') as handle:
+                pickle.dump({'total_carbon': saved_carbon}, handle)
+
+        print(f'Rescheduling from {original_start} to {new_start} will reduce CO2 intensity by {reduction:.2f}%')
     else:
         print('error: one of the following arguments is required: repeat, at')
