@@ -105,15 +105,30 @@ if __name__ == '__main__':
         print("One-off jobs:")
         print(result)
     elif args.cancel_repeating is not None:
-        job_removed = None
+        print("Repeating jobs:")
         for (idx, job) in enumerate(cron):
-            if idx == args.cancel_repeating:
-                job_removed = job
+            print(idx, job)
+        job_removed = None
+        idx = 0
+        for job in cron:
+            # print(f"Comparing idx {idx} with our target {args.cancel_repeating}")
+            if idx == int(args.cancel_repeating):
+                if isinstance(job, CronItem):
+                    job_removed = job
+                    break
+            idx = idx + 1
 
         if job_removed is not None:
+            # this doesn't actually remove the job
             cron.remove(job_removed)
-            cron.write()
             print(f'Cancelled repeating job with id: {args.cancel_repeating:2} and command: {str(job_removed):10}')
+
+        print("Repeating jobs:")
+        idx = 0
+        for job in cron:
+            print(f' Id: {idx:2}| Job: {str(job):10}')
+            idx = idx + 1
+
     elif args.cancel_one is not None:
         cmd = f'atq -r {args.cancel_one}'
         result = subprocess.check_output(cmd, universal_newlines=True)
