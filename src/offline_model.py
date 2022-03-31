@@ -58,6 +58,7 @@ class OfflineModel:
         duration_in_weeks = task.duration.days // 7
         week_cost = sum(data)
 
+        original_cost = sum(np.concatenate([data[0:], data[:0]])[:duration_in_hours])
         for i in range(search_space):
             # Sum the carbon from start point i until completion of the task
             data_from_i = np.concatenate([data[i:], data[:i]])
@@ -71,9 +72,14 @@ class OfflineModel:
         min_cost_hour = int(np.argmin(costs))
         # Add the number of hours for the best start time to the start date.
         best_start = task.start + dt.timedelta(hours=min_cost_hour)
-        print("Lowest carbon cost:", min_cost, " When started at:", best_start)
+        reduction = (1.0 - (min_cost / min_cost_hour)) * 100
 
-        return best_start
+        stats = {'reduction': reduction, 'original_cost': original_cost, 
+                 'original_start': {task.start}, 'optimized_cost': min_cost, 
+                 'optimized_start': best_start}
+
+
+        return best_start, stats
 
     def process_all_consecutive(self, tasks):
         """
@@ -88,7 +94,8 @@ class OfflineModel:
     def process_distributed(self, tasks):
         """
         Processes all tasks in the most carbon efficient way, without overlapping
-        The task schedules don't have to be executed consecutively, meaning the program may be idle during the worst hours.
+        The task schedules don't have to be executed consecutively, meaning the program 
+        may be idle during the worst hours.
         The task schedules may not overlap.
         All tasks should be handled before their deadlines.
         :param tasks: List of tasks, being tuples of a duration and a deadline.
