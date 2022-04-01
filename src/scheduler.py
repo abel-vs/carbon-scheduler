@@ -13,6 +13,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from offline_model import OfflineModel
 
 program_name = 'Carbon Scheduler'
+pickle_file = 'carbonstats.pickle'
 
 def parse_args():
      # Create the parser
@@ -104,7 +105,7 @@ if __name__ == '__main__':
         if args.green is False:
             time_str = new_start.strftime(format) 
         else:
-            time_str = delay.strftime(format)
+            time_str = datetime.datetime.now.strftime(format)
         at_options = ""
         at_time = args.at
         if args.t is True:
@@ -117,21 +118,42 @@ if __name__ == '__main__':
         time_string = args.at
         if args.t is True:
             time_string = new_start.strftime("%Y-%m-%d %H:%M:%S")
-        print(f'Optimizing schedule to lower carbon emissions...')
+        print(f'🌱 Optimizing schedule to lower carbon emissions... 🌱')
         time.sleep(3)
         print(f'Scheduled one-off job for {time_string}')
 
         original_start = stats['original_start']
         new_start = stats['optimized_start']
         reduction = stats['reduction']
-        saved_carbon = stats['original_cost'] - stats['optimized_cost']
+        original_cost = stats['original_cost']
+        optimized_cost =  stats['optimized_cost']
 
-        with open('carbon_stats.pickle', 'rb') as handle:
-            stats = pickle.load(handle)
-            total_carbon = stats['total_carbon']
-            with open('carbon_stats.pickle', 'wb') as handle:
-                pickle.dump({'total_carbon': saved_carbon}, handle)
+        totals = None
+        try:
+            with open(pickle_file, 'rb') as handle:
+                totals = pickle.load(handle)
+        except:
+                print("couldn't read pickle")
+                data = {'original_cost': original_cost, 'optimized_cost': optimized_cost}
+                with open(pickle_file, 'wb') as handle:
+                    pickle.dump(data, handle)
+                                
+                totals = data            
+            
+        original_cost_total = totals['original_cost']
+        optimized_cost_total = totals['optimized_cost']
+        original_cost_total = original_cost_total + original_cost
+        optimized_cost_total = optimized_cost_total + optimized_cost
+        with open(pickle_file, 'wb') as handle:
+            pickle.dump({'original_cost': original_cost_total, 
+                         'optimized_cost': optimized_cost_total}, 
+                        handle)
 
-        print(f'Rescheduling from {original_start} to {new_start} will reduce CO2 intensity by {reduction:.2f}%')
+        dateformat = "%Y-%m-%d %H:%M:%S"
+        print((f'🌱 Rescheduling from {original_start.strftime(dateformat)} to {new_start.strftime(dateformat)} '
+                f'will reduce CO2 intensity by {reduction:.2f}% 🌱'))
+        print((f'🌱 Rescheduling has reduced your total carbon intensity from {original_cost_total}' 
+        f' gCO2/kWh to {optimized_cost_total} gCO2/kWh'
+        f' (-{(1.0 - (float(optimized_cost_total) / float(original_cost_total))) * 100 :.2f}%) 🌱'))
     else:
         print('error: one of the following arguments is required: repeat, at')
