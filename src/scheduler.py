@@ -78,7 +78,7 @@ if __name__ == '__main__':
 
     duration = datetime.timedelta(seconds=3600) # in seconds
     if args.span is not None:
-        duration = datetime.timedelta(seconds=args.span)
+        duration = datetime.timedelta(seconds=int(args.span))
     
     deadline = datetime.datetime.now() + datetime.timedelta(days=7)
     if args.deadline is not None:
