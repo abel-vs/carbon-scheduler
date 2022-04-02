@@ -4,10 +4,9 @@ import argparse
 import os
 import sys
 from crontab import CronTab, CronItem
-import task
+from task import Task
 import croniter
 
-from apscheduler.schedulers.background import BackgroundScheduler
 
 from offline_model import OfflineModel
 
@@ -60,6 +59,21 @@ def parse_args():
     args = parser.parse_args()
 
     return args
+
+
+def schedule_task(task, job, output_file):
+    model = OfflineModel('NL')
+    new_start, stats = model.best_week_start_point(task)
+    at_format = '%Y%m%d%H%M'  # at's format:[[CC]YY]MMDDhhmm
+    time_format = '%d/%m/%Y %H:%M'
+    at_options = ""
+    at_time = new_start.strftime(at_format)
+    cmd = (f'python {os.path.abspath(job)} >> {output_file} '
+           f'| at {at_options} {at_time} >> /dev/null 2>&1')
+    subprocess.run(cmd, shell=True)  # TODO: remove shell=True
+    time = new_start.strftime(time_format)
+    return time, stats
+
 
 if __name__ == '__main__':
         
