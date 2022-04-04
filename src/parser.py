@@ -20,7 +20,7 @@ def get_marginal_forecast():
         forecasted_marginal_carbon_intensity = response.json()['Response']
     else:
         # Currently, we use data in the file since we don't have the API key
-        f = open('dummy_data/forecasted_marginal.json')
+        f = open('../models/dummy_data/forecasted_marginal.json')
 
         forecasted_marginal_carbon_intensity = json.load(f)
 
@@ -52,7 +52,7 @@ def get_past_carbon_intensity_history():
         past_carbon_intensity_history = response.json()['Response']
     else:
         # Currently, we use data in the file since we don't have the API key
-        f = open('dummy_data/past_carbon_history.json')
+        f = open('../models/dummy_data/past_carbon_history.json')
 
         past_carbon_intensity_history = json.load(f)
 
