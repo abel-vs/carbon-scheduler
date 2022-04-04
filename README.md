@@ -70,33 +70,61 @@ In order to contribute to this project,
 
 
 
-<!--## Usage
+## Usage
 
-Some useful use cases of this tool can be found below:
+Some useful commands:
 
 1. Scheduling a one-off job
+
+   `$ cas myjob.py --repeat @daily`
+
 2. Scheduling a repeating job
+
+   `$ cas myjob.py --at 202204052230`
+
 3. Listing all the scheduled jobs, repeating and one-off jobs
-4. Cancelling a repeating job 
-5. Cancelling a one-off job
+
+   `$ cas --list`
+
+4. Cancelling a repeating job given the index
+
+   `$ cas --cancel-repeating 42`
+
+5. Cancelling a one-off job given the index
+
+   `$ cas --cancel-one 42`
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
--->
+
 
 ## Roadmap
 
-- [x] Add Changelog
-- [x] Add back to top links
-- [ ] Add Additional Templates w/ Examples
-- [ ] Add "components" document to easily copy & paste sections of the readme
-- [ ] Multi-language Support
-    - [ ] Chinese
-    - [ ] Spanish
+- [x] Schedule jobs
+    - [x] Given estimate of duration and deadline
+    - [x] Taking into account carbon intensity of the grid
 
+- [x] List jobs
+    - [x] Combined view of all jobs: one-off and repeating
+- [x] Remove jobs given id of task
+- [x] Implement offline model based on energymap's historical data on energy mix
+    - [x] Location set to NL only
+    - [x] Use time of the day
+    - [x] Use day of the week
+    - [ ] Use week/month/season of the year
+- [x] Output saved CO2
+    - [x] For current session
+    - [x] For all sessions
+- [x] Run parallel jobs
+- [x] "Full of batteries basement" flag -> don't use energy data for scheduling
+- [ ] Implement online/live model
+    - [ ] Based on forecasting marginal carbon intensity
+- [ ] GUI for non-technical users
+- [ ] Windows platform support
+- [ ] Extensive testing
+- [ ] Consider machine workload
 
-
-See the [open issues](https://github.com/othneildrew/Best-README-Template/issues) for a full list of proposed features (and known issues).
+See the [open issues](https://github.com/abel-vs/carbon-scheduler/issues) for a full list of proposed features (and known issues).
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -104,15 +132,15 @@ See the [open issues](https://github.com/othneildrew/Best-README-Template/issues
 
 Wander Siemers - wandersiemers@me.com
 
-Abel -
+Abel Van Steenweghen - Abel.van.steenweghen@gmail.com
 
-Florentin - 
+Florentin-Ionut Arsene - arsene.florentin.ionut@gmail.com
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## Acknowledgments
 
-* Luis Cruz
+* Luís Cruz - Assistant Professor at Delft University of Technology
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -121,17 +149,3 @@ Florentin -
 Distributed under the MIT License. See `LICENSE.txt` for more information.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
-
-[contributors-shield]: https://img.shields.io/github/contributors/othneildrew/Best-README-Template.svg?style=for-the-badge
-[contributors-url]: https://github.com/abel-vs/carbon-scheduler/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/othneildrew/Best-README-Template.svg?style=for-the-badge
-[forks-url]: https://github.com/othneildrew/Best-README-Template/network/members
-[stars-shield]: https://img.shields.io/github/stars/othneildrew/Best-README-Template.svg?style=for-the-badge
-[stars-url]: https://github.com/othneildrew/Best-README-Template/stargazers
-[issues-shield]: https://img.shields.io/github/issues/othneildrew/Best-README-Template.svg?style=for-the-badge
-[issues-url]: https://github.com/othneildrew/Best-README-Template/issues
-[license-shield]: https://img.shields.io/github/license/othneildrew/Best-README-Template.svg?style=for-the-badge
-[license-url]: https://github.com/othneildrew/Best-README-Template/blob/master/LICENSE.txt
-[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
-[linkedin-url]: https://linkedin.com/in/othneildrew
-[product-screenshot]: images/screenshot.png
