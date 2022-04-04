@@ -2,16 +2,16 @@ import json
 import requests
 from datetime import date
 
-API_KEY = "NONE"
-
 
 def get_marginal_forecast():
     """
     Get the marginal forecast carbon intensity hourly for the next day
     :return: array of predicted hourly values for the next 24 hours
     """
+    api_key = open("key.txt").read()  # API Key should be stored in src/key.txt file
+
     response = requests.get("https://api.electricitymap.org/v3/marginal-carbon-intensity/forecast?zone='NL'",
-                            headers={'Authorization': f'auth-token {API_KEY}'})
+                            headers={'Authorization': f'auth-token {api_key}'})
     print(f'Response received from the API: {response}')
 
     forecasted_marginal_carbon_intensity = None
@@ -34,6 +34,7 @@ def get_past_carbon_intensity_history():
     Get range of past carbon intensity around last year on the same exact day as the time of execution of this program
     :return: Past carbon intensity history range
     """
+    api_key = open("key.txt").read()  # API Key should be stored in src/key.txt file
 
     today = date.today()
     # calculate range based on today - at most 10 days range limit by API
@@ -42,7 +43,7 @@ def get_past_carbon_intensity_history():
 
     response = requests.get(
         f"https://api.electricitymap.org/v3/carbon-intensity/past-range?zone=NL&start={start_date}&end={end_date}",
-        headers={'Authorization': f'auth-token {API_KEY}'})
+        headers={'Authorization': f'auth-token {api_key}'})
     print(f'Response received from the API: {response}')
 
     past_carbon_intensity_history = None
