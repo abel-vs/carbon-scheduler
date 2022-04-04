@@ -1,15 +1,14 @@
-import subprocess
 import argparse
-import os
-import sys
-from crontab import CronTab, CronItem
-from croniter import croniter
 import datetime
+import os
+import subprocess
+
+from croniter import croniter
+from crontab import CronTab, CronItem
+
 import task
-
-from apscheduler.schedulers.background import BackgroundScheduler
-
 from offline_model import OfflineModel
+
 
 def parse_args():
      # Create the parser
@@ -40,11 +39,6 @@ def parse_args():
     parser.add_argument('--span', '--duration',
                        type=str,
                        help='the estimated span, or duration, of the job, in seconds',
-                       required=False)
-
-    parser.add_argument('--delay',
-                       type=str,
-                       help='minimum number of seconds that have to pass before starting task',
                        required=False)
     
     parser.add_argument('--deadline',
@@ -128,26 +122,21 @@ if __name__ == '__main__':
         for job in cron:
             print(f' Id: {idx:2}| Job: {str(job):10}')
             idx = idx + 1
-
     elif args.cancel_one is not None:
         cmd = f'atq -r {args.cancel_one}'
         result = subprocess.check_output(cmd, universal_newlines=True)
         print(f'Cancelled one-off job with id: {args.cancel_one:2}')
     else:
-        duration = datetime.timedelta(seconds=3600) # in seconds
+        duration = datetime.timedelta(seconds=3600)  # in seconds
         if args.span is not None:
             duration = datetime.timedelta(seconds=args.span)
 
         deadline = datetime.datetime.now() + datetime.timedelta(days=7)
         if args.deadline is not None:
-            deadline = datetime.datetime.now() + datetime.timedelta(seconds=args.deadline)
-
-        delay = datetime.datetime.now()
-        if args.delay is not None:
-            delay = datetime.datetime.now() + datetime.timedelta(seconds=args.delay)
+            deadline = datetime.datetime.now() + datetime.timedelta(seconds=int(args.deadline))
 
         model = OfflineModel('NL')
-        task = task.Task(duration, deadline, delay)
+        task = task.Task(duration, deadline, datetime.datetime.now())
         new_start = model.process_concurrently([task])[0]
 
         print("Task scheduled at", new_start)
