@@ -4,12 +4,12 @@ import argparse
 import os
 import sys
 from crontab import CronTab, CronItem
-import task
 import croniter
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from offline_model import OfflineModel
+from src.offline_model import OfflineModel
+
 
 def parse_args():
      # Create the parser
@@ -61,7 +61,7 @@ def parse_args():
 
     return args
 
-if __name__ == '__main__':
+def main():
         
     args = parse_args()
 
