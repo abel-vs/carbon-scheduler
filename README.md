@@ -1,29 +1,26 @@
 <div id="top"></div>
 
-  <h3 align="center">The CAS tool</h3>
+  <h3 align="center">CAS</h3>
 
   <p align="center">
-    A Carbon Aware Scheduler for Unix jobs
+    A Carbon-aware scheduler for Unix jobs
     <br />
-    <a href="https://github.com/othneildrew/Best-README-Template"><strong>Explore the docs »</strong></a>
-    <br />
-    <br />
-    <a href="https://github.com/othneildrew/Best-README-Template">View Demo</a>
+    <a href="https://github.com/abel-vs/carbon-scheduler/issues">Report Bug</a>
     ·
-    <a href="https://github.com/othneildrew/Best-README-Template/issues">Report Bug</a>
+    <a href="https://github.com/abel-vs/carbon-scheduler/issues">Request Feature</a>
     ·
-    <a href="https://github.com/othneildrew/Best-README-Template/issues">Request Feature</a>
+    <a href="https://github.com/abel-vs/carbon-scheduler/pulls">Contribute</a>
   </p>
 
 
-## About The Carbon Aware Scheduler
+## About Carbon Aware Scheduler
 
-The Carbon Aware Scheduler (CAS) is a command line tool that takes CO2 into account when scheduling intensive jobs on the computer. Given a job, this job will find the best time of the day to run a job based on collected data. The data is currently based on some heuristics and it's only related to the Netherlands. The tool is a wrapper around the Cron tool for scheduling unix commands and the at tool. 
+Carbon Aware Scheduler (CAS) is a command line tool that takes CO2 into account when scheduling jobs. Given a job, this job will find the best time of the day to run a job based on a model of [carbon intensity](https://en.wikipedia.org/wiki/Emission_intensity#Electric_generation) of the power grid. The amount of CO2 emitted per kWh (the aforementioned carbon intensity) often varies greatly during the day, so smart scheduling can reduce CO2 emissions. The model is based on heuristics and it's currently only available for the Netherlands. The tool is a wrapper around the `cron` and `at` tools for scheduling Unix commands.
 
 This tool can help you:
 * Schedule non-urgent jobs at a later time during the day
 * Save CO2 and visualize total CO2 saved
-* Easily manage your cron jobs
+* Easily manage your `cron` and `at` jobs
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -40,15 +37,12 @@ This project was built in [Python ](https://www.python.org/)and some of the main
 
 Here are the instructions on getting started with our tool. Whether you want to use this tool to become more environmentally-friendly or simply contribute to a tool that changes the world, you can find the instructions here.
 
-
-
 ### Installation
 
-If you simply want to use the app and benefit from the carbon aware scheduling, simply execute the step below:
+If you simply want to use the app and benefit from the carbon aware-scheduling, simply run:
 
-* Install the package with pip
   ```sh
-  pip install cas
+  pip install carbon-aware-scheduler
   ```
 
 
@@ -57,9 +51,9 @@ If you simply want to use the app and benefit from the carbon aware scheduling, 
 
 In order to contribute to this project, 
 
-1. Clone the repo
+1. Fork the repo using the web interface or using the `gh` CLI:
    ```sh
-   git clone https://github.com/abel-vs/carbon-scheduler
+   gh repo fork https://github.com/abel-vs/carbon-scheduler --clone
    ```
 
 2. Install the requirements
@@ -68,11 +62,15 @@ In order to contribute to this project,
    pip install -r requirements.txt
    ```
 
+3. Make some commits!
+
+4. Open a [Pull Request](https://github.com/abel-vs/carbon-scheduler/pulls)
+
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 
 
-## Usage
+<!--## Usage
 
 Some useful use cases of this tool can be found below:
 
@@ -84,7 +82,7 @@ Some useful use cases of this tool can be found below:
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
-
+-->
 
 ## Roadmap
 
@@ -104,7 +102,7 @@ See the [open issues](https://github.com/othneildrew/Best-README-Template/issues
 
 ## Contact
 
-Wander - email@example.com
+Wander Siemers - wandersiemers@me.com
 
 Abel -
 
@@ -113,8 +111,6 @@ Florentin -
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## Acknowledgments
-
-Use this space to list resources you find helpful and would like to give credit to. I've included a few of my favorites to kick things off!
 
 * Luis Cruz
 
