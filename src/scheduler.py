@@ -89,7 +89,7 @@ def schedule_task(task, job, output_file):
     return time, stats
 
 
-def list_jobs(cron, args):
+def list_jobs(cron):
     print("All scheduled jobs:")
     print()
     print("Repeating jobs:")
@@ -252,7 +252,7 @@ if __name__ == '__main__':
     cron = CronTab(user=os.getlogin())
 
     if args.list:
-        list_jobs(cron, args)
+        list_jobs(cron)
     elif args.cancel_repeating is not None:
         cancel_repeating(cron, args)
     elif args.cancel_one is not None:

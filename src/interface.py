@@ -1,6 +1,8 @@
+import os
 from datetime import datetime, timedelta
 
-from PyInquirer import prompt, print_json
+from PyInquirer import prompt
+from crontab import CronTab
 from prompt_toolkit.validation import Validator, ValidationError
 from os.path import exists
 
@@ -45,7 +47,7 @@ welcome_question = {
     'type': 'list',
     'name': 'choice',
     'message': 'What would you like to do?',
-    'choices': ["Schedule task", "View currently scheduled tasks", "View all tasks", "Help", "Close"]
+    'choices': ["Schedule task", "View scheduled tasks", "Help", "Close"]
 }
 task_question = {
     'type': "input",
@@ -93,9 +95,8 @@ def main_menu():
     if option == "Schedule task":
         schedule_task_process()
     elif option == "View scheduled tasks":
-        pass
-    elif option == "View past tasks":
-        pass
+        cron = CronTab(user=os.getlogin())
+        scheduler.list_jobs(cron)
     elif option == "Help":
         help()
     else:
