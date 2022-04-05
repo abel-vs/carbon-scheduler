@@ -26,10 +26,14 @@ This tool can help you:
 
 ### Built With
 
-This project was built in [Python ](https://www.python.org/)and some of the main dependencies are:
+This project was built in [Python](https://www.python.org/). Its main dependencies are:
 
 * [python-crontab](https://pypi.org/project/python-crontab/)
 * [croniter](https://pypi.org/project/croniter/)
+* [numpy](https://numpy.org)
+* [pandas](https://pandas.pydata.org)
+
+The project also imports [requests](https://docs.python-requests.org/en/latest/), but we do not actually use it in live code in the project. This is due to us not getting access to the [ElectricityMap API](https://static.electricitymap.org/api/docs/index.html) in time for this project
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
