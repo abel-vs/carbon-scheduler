@@ -25,7 +25,7 @@ setup(
     ],
     packages=["src"],
     include_package_data=True,
-    install_requires=["numpy", "pandas", "requests", "python-crontab", "croniter"],
+    install_requires=["numpy", "pandas", "requests", "python-crontab", "croniter", "pyinquirer"],
     entry_points={
         "console_scripts": [
             "cas=src.__main__:main",
