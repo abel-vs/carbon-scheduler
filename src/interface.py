@@ -6,8 +6,10 @@ from crontab import CronTab
 from prompt_toolkit.validation import Validator, ValidationError
 from os.path import exists
 
-import scheduler
-from task import Task
+from src import scheduler
+from src.task import Task
+
+user = 'arsen'
 
 
 class NumberValidator(Validator):
@@ -95,7 +97,7 @@ def main_menu():
     if option == "Schedule task":
         schedule_task_process()
     elif option == "View scheduled tasks":
-        cron = CronTab(user=os.getlogin())
+        cron = CronTab(user=user)
         scheduler.list_jobs(cron)
     elif option == "Help":
         help()
