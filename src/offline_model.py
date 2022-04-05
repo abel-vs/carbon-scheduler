@@ -70,12 +70,13 @@ class OfflineModel:
         # Extract optimal start time
         min_cost = np.amin(costs)
         min_cost_hour = int(np.argmin(costs))
+
         # Add the number of hours for the best start time to the start date.
         best_start = task.start + dt.timedelta(hours=min_cost_hour)
-        reduction = (1.0 - (min_cost / min_cost_hour)) * 100
+        reduction = (1.0 - (min_cost / original_cost)) * 100
 
         stats = {'reduction': reduction, 'original_cost': original_cost, 
-                 'original_start': {task.start}, 'optimized_cost': min_cost, 
+                 'original_start': task.start, 'optimized_cost': min_cost, 
                  'optimized_start': best_start}
 
 
