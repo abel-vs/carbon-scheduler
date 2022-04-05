@@ -1,5 +1,5 @@
 import argparse
-import datetime
+import datetime as dt
 import os
 from src.offline_model import OfflineModel
 import pickle
@@ -11,16 +11,15 @@ from src.task import Task
 
 program_name = 'Carbon Scheduler'
 pickle_file = 'carbonstats.pickle'
-user = 'arsen'
+user = os.getlogin()
 
 
 def parse_args():
     # Create the parser
-
-    parser = argparse.ArgumentParser(description=f'{program_name} v0.1')
+    parser = argparse.ArgumentParser(description=f"{program_name} v0.1")
 
     # Add the arguments
-    parser.add_argument('job',
+    parser.add_argument('--job',
                         type=str,
                         help='the Python filename of the job to schedule')
 
@@ -77,14 +76,14 @@ def parse_args():
     return args
 
 
-def list_jobs(cron, args):
+def list_jobs(cron):
     print("All scheduled jobs:")
     print()
     print("Repeating jobs:")
     for (idx, job) in enumerate(cron):
-        now = datetime.datetime.now()
+        now = dt.datetime.now()
         cron = croniter.croniter(str(job.slices.render()), now)
-        next_run = cron.get_next(datetime.datetime)
+        next_run = cron.get_next(dt.datetime)
         print(f' Id: {idx:2}| Next run: {next_run} | Job: {str(job):10}')
     print()
     cmd = 'atq'
@@ -94,9 +93,6 @@ def list_jobs(cron, args):
 
 
 def cancel_repeating(cron, args):
-    print("Repeating jobs:")
-    for (idx, job) in enumerate(cron):
-        print(idx, job)
     job_removed = None
     idx = 0
     for job in cron:
@@ -112,64 +108,72 @@ def cancel_repeating(cron, args):
         cron.remove(job_removed)
         print(f'Cancelled repeating job with id: {args.cancel_repeating:2} and command: {str(job_removed):10}')
 
-    print("Repeating jobs:")
-    idx = 0
-    for job in cron:
-        print(f' Id: {idx:2}| Job: {str(job):10}')
-        idx = idx + 1
-
 
 def cancel_one(args):
     subprocess.call(["at", "-r", str(args.cancel_one)], shell=False)
     print(f'Cancelled one-off job with id: {args.cancel_one:2}')
 
 
-def schedule_repeating(cron, args):
-    output_file = '/tmp/cron.lst'
-    if args.output is not None:
-        output_file = args.output
-    output_file = output_file + ' 2>&1'  # send both stdout and stderr to our output file
+def schedule_repeating(cron, args, output_file):
+    duration = dt.timedelta(seconds=3600)  # in seconds
 
-    duration = datetime.timedelta(seconds=3600)  # in seconds
     if args.span is not None:
-        duration = datetime.timedelta(seconds=int(args.span))
+        duration = dt.timedelta(seconds=int(args.span))
 
-    deadline = datetime.datetime.now() + datetime.timedelta(days=7)
+    deadline = dt.datetime.now() + dt.timedelta(days=7)
     if args.deadline is not None:
-        deadline = datetime.datetime.now() + datetime.timedelta(seconds=int(args.deadline))
+        deadline = dt.datetime.now() + dt.timedelta(seconds=int(args.deadline))
 
     model = OfflineModel('NL')
-    task = Task(duration, deadline, datetime.datetime.now())
-    new_start, stats = model.process_concurrently([task])[0]
+    task = Task(duration, deadline, dt.datetime.now())
+    best_start, stats = model.best_24h_start_point(task)
+    best_start_cron = args.repeat
+    if args.repeat == "@daily":
+        best_start_cron = "0 " + str(best_start.hour) + " * * *"
+    elif args.repeat == "@weekly":
+        best_start_cron = "0 " + str(best_start.hour) + " 1 * *"
+    elif args.repeat == "@monthly":
+        best_start_cron = "0 " + str(best_start.hour) + " * 1 *"
+    elif args.repeat == "@yearly":
+        best_start_cron = "0 " + str(best_start.hour) + " * * 1"
 
     # we have a repeating job, schedule using `cron`
-
     # extra parentheses around the strings to get a multiline string without whitespace
     # see: https://stackoverflow.com/a/10660443
-    item = CronItem.from_line((f'{args.repeat} python {os.path.abspath(args.job)} >> '
+    item = CronItem.from_line((f'{best_start_cron} python {os.path.abspath(args.job)} >> '
                                f'{output_file}'), cron=cron)
     cron.append(item)
     cron.write()
-    next_run = croniter.croniter(args.repeat, datetime.datetime.now()).get_next(datetime.datetime)
+    next_run = croniter.croniter(args.repeat, dt.datetime.now()).get_next(dt.datetime)
     print(f'scheduled repeating job with schedule {args.repeat} - next run at {next_run}')
 
 
-def schedule_one(args):
-    output_file = '/tmp/cron.lst'
-    if args.output is not None:
-        output_file = args.output
-    output_file = output_file + ' 2>&1'  # send both stdout and stderr to our output file
+def schedule_task(task, job, output_file):
+    model = OfflineModel('NL')
+    new_start, stats = model.best_week_start_point(task)
+    at_format = '%Y%m%d%H%M'  # at's format:[[CC]YY]MMDDhhmm
+    time_format = '%d/%m/%Y %H:%M'
+    at_options = "-t"
+    at_time = new_start.strftime(at_format)
+    cmd = (f'python {os.path.abspath(job)} >> {output_file} '
+           f'| at {at_options} {at_time} >> /dev/null 2>&1')
+    subprocess.run(cmd, shell=True)  # TODO: remove shell=True
+    time = new_start.strftime(time_format)
+    return time, stats
 
-    duration = datetime.timedelta(seconds=3600)  # in seconds
+
+def schedule_one(args, output_file):
+    duration = dt.timedelta(seconds=3600)  # in seconds
+
     if args.span is not None:
-        duration = datetime.timedelta(seconds=int(args.span))
+        duration = dt.timedelta(seconds=int(args.span))
 
-    deadline = datetime.datetime.now() + datetime.timedelta(days=7)
+    deadline = dt.datetime.now() + dt.timedelta(days=7)
     if args.deadline is not None:
-        deadline = datetime.datetime.now() + datetime.timedelta(seconds=int(args.deadline))
+        deadline = dt.datetime.now() + dt.timedelta(seconds=int(args.deadline))
 
     model = OfflineModel('NL')
-    task = Task(duration, deadline, datetime.datetime.now())
+    task = Task(duration, deadline, dt.datetime.now())
     new_start, stats = model.process_concurrently([task])[0]
 
     # we have a one-off job, schedule using `at`
@@ -177,7 +181,7 @@ def schedule_one(args):
     if args.green is False:
         time_str = new_start.strftime(format)
     else:
-        time_str = datetime.datetime.now.strftime(format)
+        time_str = dt.datetime.now.strftime(format)
     at_options = ""
     at_time = args.at
     if args.t is True:
@@ -234,22 +238,23 @@ def schedule_one(args):
 def main():
     args = parse_args()
 
+    output_file = '/tmp/cron.lst'
+    if args.output is not None:
+        output_file = args.output
+    output_file = output_file + ' 2>&1'  # send both stdout and stderr to our output file
+
     cron = CronTab(user=user)
 
     if args.list:
-        list_jobs(cron, args)
+        list_jobs(cron)
     elif args.cancel_repeating is not None:
         cancel_repeating(cron, args)
     elif args.cancel_one is not None:
         cancel_one(args)
     else:
         if args.repeat is not None:
-            schedule_repeating(cron, args)
+            schedule_repeating(cron, args, output_file)
         elif args.at is not None:
-            schedule_one(args)
+            schedule_one(args, output_file)
         else:
             print('error: one of the following arguments is required: repeat, at')
-
-
-if __name__ == '__main__':
-    main()
