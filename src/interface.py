@@ -83,7 +83,7 @@ start_question = {
 
 help_question = {'type': 'list',
                  'name': 'choice',
-                 'message': '❓What\'s your question?',
+                 'message': 'What\'s your question?',
                  'choices': ["What is Carbon Scheduler?", "How to process multiple files?", "Back"],
                  }
 
