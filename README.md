@@ -15,7 +15,7 @@
 
 ## About Carbon Aware Scheduler
 
-Carbon Aware Scheduler (CAS) is a command line tool that takes CO2 into account when scheduling jobs. Given a job, this job will find the best time of the day to run a job based on a model of [carbon intensity](https://en.wikipedia.org/wiki/Emission_intensity#Electric_generation) of the power grid. The amount of CO2 emitted per kWh (the aforementioned carbon intensity) often varies greatly during the day, so smart scheduling can reduce CO2 emissions. The model is based on heuristics and it's currently only available for the Netherlands. The tool is a wrapper around the `cron` and `at` tools for scheduling Unix commands.
+Carbon Aware Scheduler (CAS) is a command line tool that takes CO2 into account when scheduling jobs. Given a job, this tool will find the best time to run this job based on a model of [carbon intensity](https://en.wikipedia.org/wiki/Emission_intensity#Electric_generation) of the power grid. The amount of CO2 emitted per kWh (the aforementioned carbon intensity) often varies greatly during the day, so smart scheduling can reduce CO2 emissions. The model is based on heuristics and it's currently only available for the Netherlands. The tool is a wrapper around the `cron` and `at` tools for scheduling Unix commands.
 
 This tool can help you:
 * Schedule non-urgent jobs at a later time during the day
@@ -33,7 +33,7 @@ This project was built in [Python](https://www.python.org/). Its main dependenci
 * [numpy](https://numpy.org)
 * [pandas](https://pandas.pydata.org)
 
-The project also imports [requests](https://docs.python-requests.org/en/latest/), but we do not actually use it in live code in the project. This is due to us not getting access to the [ElectricityMap API](https://static.electricitymap.org/api/docs/index.html) in time for this project
+The project also imports [requests](https://docs.python-requests.org/en/latest/), but we do not actually use it in live code in the project. This is due to us not getting access to the [ElectricityMap API](https://static.electricitymap.org/api/docs/index.html) in time for this project.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 

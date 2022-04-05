@@ -1,24 +1,25 @@
 import argparse
 import datetime as dt
 import os
+from src.offline_model import OfflineModel
 import pickle
 import subprocess
 import time
 import croniter
 from crontab import CronTab, CronItem
-from task import Task
-from offline_model import OfflineModel
+from src.task import Task
+from interface import main_menu
 
 program_name = 'Carbon Scheduler'
 pickle_file = 'carbonstats.pickle'
-
+user = 'arsen'
 
 def parse_args():
     # Create the parser
-    parser = argparse.ArgumentParser(description=f'{program_name} v0.1')
+    parser = argparse.ArgumentParser(description=f"{program_name} v0.1")
 
     # Add the arguments
-    parser.add_argument('job',
+    parser.add_argument('--job',
                         type=str,
                         help='the Python filename of the job to schedule')
 
@@ -137,7 +138,13 @@ def cancel_one(args):
 
 
 def schedule_repeating(cron, args):
+    output_file = '/tmp/cron.lst'
+    if args.output is not None:
+        output_file = args.output
+    output_file = output_file + ' 2>&1'  # send both stdout and stderr to our output file
+
     duration = dt.timedelta(seconds=3600)  # in seconds
+
     if args.span is not None:
         duration = dt.timedelta(seconds=int(args.span))
 
@@ -170,7 +177,13 @@ def schedule_repeating(cron, args):
 
 
 def schedule_one(args):
+    output_file = '/tmp/cron.lst'
+    if args.output is not None:
+        output_file = args.output
+    output_file = output_file + ' 2>&1'  # send both stdout and stderr to our output file
+
     duration = dt.timedelta(seconds=3600)  # in seconds
+
     if args.span is not None:
         duration = dt.timedelta(seconds=int(args.span))
 
@@ -241,15 +254,10 @@ def schedule_one(args):
            f' (-{(1.0 - (float(optimized_cost_total) / float(original_cost_total))) * 100 :.2f}%) 🌱'))
 
 
-if __name__ == '__main__':
+def main():
     args = parse_args()
 
-    output_file = '/tmp/cron.lst'
-    if args.output is not None:
-        output_file = args.output
-    output_file = output_file + ' 2>&1'  # send both stdout and stderr to our output file
-
-    cron = CronTab(user=os.getlogin())
+    cron = CronTab(user=user)
 
     if args.list:
         list_jobs(cron)

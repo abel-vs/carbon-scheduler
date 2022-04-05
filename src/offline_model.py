@@ -1,7 +1,7 @@
 import datetime as dt
 import numpy as np
 
-from data import get_hour_data, get_week_data
+from src.data import get_hour_data, get_week_data
 
 
 class OfflineModel:
