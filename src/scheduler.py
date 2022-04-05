@@ -95,7 +95,7 @@ if __name__ == '__main__':
         
     args = parse_args()
 
-    cron = CronTab(user='abel')
+    cron = CronTab(user=os.getlogin())
 
     output_file = '/tmp/cron.lst'
     if args.output is not None:
