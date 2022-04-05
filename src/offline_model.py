@@ -17,12 +17,11 @@ class OfflineModel:
         :return: Best start hour in the coming 24 hours.
         """
         costs = []
-        day_cost = sum(self.hour_data)
+        day_cost = sum(self.hour_data)  # Cost for a whole day
+        hrs = task.duration.seconds // 3600  # Costs for remaining hours
         for i in range(24):
             # Add hour costs for whole days, only for tasks longer than 24h.
             cost = day_cost * task.duration.days
-            # Add hour costs for shorter periods
-            hrs = task.duration.seconds // 3600
             if i + hrs <= 24:
                 cost += sum(self.hour_data[i:i + hrs])
             else:
@@ -30,8 +29,18 @@ class OfflineModel:
                 cost += sum(self.hour_data[i:i + (hrs - hrs_left)])
                 cost += sum(self.hour_data[:hrs_left])
             costs.append(cost)
-        min_start_point = np.argmin(costs)
-        return min_start_point
+
+        best_start_hour = np.argmin(costs)
+        best_start = dt.datetime.now().replace(hour=best_start_hour, minute=0, second=0)
+        min_cost = np.min(costs)
+        hour = task.start.hour
+        original_cost = day_cost * task.duration.days + \
+            sum(self.hour_data[hour:hour + hrs]) + \
+            sum(self.hour_data[:24 - (hour + hrs)])
+
+        stats = self.get_stats(task.start, best_start, original_cost, min_cost)
+
+        return best_start, stats
 
     def best_week_start_point(self, task):
         """
@@ -70,15 +79,17 @@ class OfflineModel:
         min_cost_hour = int(np.argmin(costs))
 
         # Add the number of hours for the best start time to the start date.
-        best_start = task.start + dt.timedelta(hours=min_cost_hour)
-        reduction = (1.0 - (min_cost / original_cost)) * 100
-
-        stats = {'reduction': reduction, 'original_cost': original_cost, 
-                 'original_start': task.start, 'optimized_cost': min_cost, 
-                 'optimized_start': best_start}
-
+        best_start = (task.start + dt.timedelta(hours=min_cost_hour)).replace(minute=0, second=0)
+        stats = self.get_stats(task.start, best_start, original_cost, min_cost)
 
         return best_start, stats
+
+    @staticmethod
+    def get_stats(original_start, optimal_start, original_cost, optimal_cost):
+        reduction = (1.0 - (optimal_cost / original_cost)) * 100
+        return {'reduction': reduction, 'original_cost': original_cost,
+                'original_start': original_start, 'optimized_cost': optimal_cost,
+                'optimized_start': optimal_start}
 
     def process_all_consecutive(self, tasks):
         """

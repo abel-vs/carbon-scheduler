@@ -1,5 +1,5 @@
 import argparse
-import datetime
+import datetime as dt
 import os
 import pickle
 import subprocess
@@ -15,7 +15,6 @@ pickle_file = 'carbonstats.pickle'
 
 def parse_args():
     # Create the parser
-
     parser = argparse.ArgumentParser(description=f'{program_name} v0.1')
 
     # Add the arguments
@@ -95,9 +94,9 @@ def list_jobs(cron, args):
     print()
     print("Repeating jobs:")
     for (idx, job) in enumerate(cron):
-        now = datetime.datetime.now()
+        now = dt.datetime.now()
         cron = croniter.croniter(str(job.slices.render()), now)
-        next_run = cron.get_next(datetime.datetime)
+        next_run = cron.get_next(dt.datetime)
         print(f' Id: {idx:2}| Next run: {next_run} | Job: {str(job):10}')
     print()
     cmd = 'atq'
@@ -138,41 +137,49 @@ def cancel_one(args):
 
 
 def schedule_repeating(cron, args):
-    duration = datetime.timedelta(seconds=3600)  # in seconds
+    duration = dt.timedelta(seconds=3600)  # in seconds
     if args.span is not None:
-        duration = datetime.timedelta(seconds=int(args.span))
+        duration = dt.timedelta(seconds=int(args.span))
 
-    deadline = datetime.datetime.now() + datetime.timedelta(days=7)
+    deadline = dt.datetime.now() + dt.timedelta(days=7)
     if args.deadline is not None:
-        deadline = datetime.datetime.now() + datetime.timedelta(seconds=int(args.deadline))
+        deadline = dt.datetime.now() + dt.timedelta(seconds=int(args.deadline))
 
     model = OfflineModel('NL')
-    task = Task(duration, deadline, datetime.datetime.now())
-    new_start, stats = model.process_concurrently([task])[0]
+    task = Task(duration, deadline, dt.datetime.now())
+    best_start, stats = model.best_24h_start_point(task)
+    best_start_cron = args.repeat
+    if args.repeat == "@daily":
+        best_start_cron = "0 " + str(best_start.hour) + " * * *"
+    elif args.repeat == "@weekly":
+        best_start_cron = "0 " + str(best_start.hour) + " 1 * *"
+    elif args.repeat == "@monthly":
+        best_start_cron = "0 " + str(best_start.hour) + " * 1 *"
+    elif args.repeat == "@yearly":
+        best_start_cron = "0 " + str(best_start.hour) + " * * 1"
 
     # we have a repeating job, schedule using `cron`
-
     # extra parentheses around the strings to get a multiline string without whitespace
     # see: https://stackoverflow.com/a/10660443
-    item = CronItem.from_line((f'{args.repeat} python {os.path.abspath(args.job)} >> '
+    item = CronItem.from_line((f'{best_start_cron} python {os.path.abspath(args.job)} >> '
                                f'{output_file}'), cron=cron)
     cron.append(item)
     cron.write()
-    next_run = croniter.croniter(args.repeat, datetime.datetime.now()).get_next(datetime.datetime)
+    next_run = croniter.croniter(args.repeat, dt.datetime.now()).get_next(dt.datetime)
     print(f'scheduled repeating job with schedule {args.repeat} - next run at {next_run}')
 
 
 def schedule_one(args):
-    duration = datetime.timedelta(seconds=3600)  # in seconds
+    duration = dt.timedelta(seconds=3600)  # in seconds
     if args.span is not None:
-        duration = datetime.timedelta(seconds=int(args.span))
+        duration = dt.timedelta(seconds=int(args.span))
 
-    deadline = datetime.datetime.now() + datetime.timedelta(days=7)
+    deadline = dt.datetime.now() + dt.timedelta(days=7)
     if args.deadline is not None:
-        deadline = datetime.datetime.now() + datetime.timedelta(seconds=int(args.deadline))
+        deadline = dt.datetime.now() + dt.timedelta(seconds=int(args.deadline))
 
     model = OfflineModel('NL')
-    task = Task(duration, deadline, datetime.datetime.now())
+    task = Task(duration, deadline, dt.datetime.now())
     new_start, stats = model.process_concurrently([task])[0]
 
     # we have a one-off job, schedule using `at`
@@ -180,7 +187,7 @@ def schedule_one(args):
     if args.green is False:
         time_str = new_start.strftime(format)
     else:
-        time_str = datetime.datetime.now.strftime(format)
+        time_str = dt.datetime.now.strftime(format)
     at_options = ""
     at_time = args.at
     if args.t is True:
