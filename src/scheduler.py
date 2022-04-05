@@ -136,7 +136,7 @@ def cancel_one(args):
     print(f'Cancelled one-off job with id: {args.cancel_one:2}')
 
 
-def schedule_repeating(cron, args):
+def schedule_repeating(cron, args, output_file):
     duration = dt.timedelta(seconds=3600)  # in seconds
     if args.span is not None:
         duration = dt.timedelta(seconds=int(args.span))
@@ -169,7 +169,7 @@ def schedule_repeating(cron, args):
     print(f'scheduled repeating job with schedule {args.repeat} - next run at {next_run}')
 
 
-def schedule_one(args):
+def schedule_one(args, output_file):
     duration = dt.timedelta(seconds=3600)  # in seconds
     if args.span is not None:
         duration = dt.timedelta(seconds=int(args.span))
@@ -241,7 +241,7 @@ def schedule_one(args):
            f' (-{(1.0 - (float(optimized_cost_total) / float(original_cost_total))) * 100 :.2f}%) 🌱'))
 
 
-if __name__ == '__main__':
+def main():
     args = parse_args()
 
     output_file = '/tmp/cron.lst'
@@ -259,8 +259,8 @@ if __name__ == '__main__':
         cancel_one(args)
     else:
         if args.repeat is not None:
-            schedule_repeating(cron, args)
+            schedule_repeating(cron, args, output_file)
         elif args.at is not None:
-            schedule_one(args)
+            schedule_one(args, output_file)
         else:
             print('error: one of the following arguments is required: repeat, at')
