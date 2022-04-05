@@ -9,7 +9,7 @@ from os.path import exists
 from src import scheduler
 from src.task import Task
 
-user = 'arsen'
+user = os.getlogin()
 
 
 class NumberValidator(Validator):
