@@ -32,6 +32,7 @@ This project was built in [Python](https://www.python.org/). Its main dependenci
 * [croniter](https://pypi.org/project/croniter/)
 * [numpy](https://numpy.org)
 * [pandas](https://pandas.pydata.org)
+* [pyinquirer](https://pypi.org/project/PyInquirer/)
 
 The project also imports [requests](https://docs.python-requests.org/en/latest/), but we do not actually use it in live code in the project. This is due to us not getting access to the [ElectricityMap API](https://static.electricitymap.org/api/docs/index.html) in time for this project.
 
@@ -49,7 +50,7 @@ If you simply want to use the app and benefit from the carbon aware-scheduling, 
   pip install carbon-aware-scheduler
   ```
 
-
+Importantly, this project does **not** support Python 3.10 at this time due to [a bug](https://github.com/ForestAdmin/django-forestadmin/issues/72).
 
 ### Contributing
 
